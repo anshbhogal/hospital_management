@@ -1,6 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { StatsCard } from "@/components/StatsCard";
-import { DashboardAppointmentsSummary } from "@/components/DashboardAppointmentsSummary";
+import { AppointmentsTable } from "@/components/DashboardAppointmentsSummary";
 import { QuickActions } from "@/components/QuickActions";
 import { RecentActivity } from "@/components/RecentActivity";
 import { Users, UserCheck, Calendar, CreditCard } from "lucide-react";
@@ -85,7 +85,7 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Appointments */}
           <div className="lg:col-span-2">
-            <DashboardAppointmentsSummary appointments={appointmentsData || []} />
+            <AppointmentsTable appointments={appointmentsData || []} />
           </div>
 
           {/* Right Column - Quick Actions & Activity */}
