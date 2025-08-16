@@ -16,6 +16,7 @@ import AppointmentsPage from "./pages/AppointmentsPage";
 import MedicalRecordsPage from "./pages/MedicalRecordsPage";
 import BillingPage from "./pages/BillingPage";
 import SettingsPage from "./pages/SettingsPage";
+import HomePage from "./pages/HomePage"; // Import HomePage
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
@@ -26,72 +27,105 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/patient" element={<PatientPortal />} />
-            <Route path="/staff" element={<StaffDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            {/* TODO: Add routes for Doctors, Appointments, Medical Records, Billing with appropriate PrivateRoute and allowedRoles */}
-
-            {/* Doctors Management (Admin) */}
-            <Route
-              path="/doctors"
-              element={
-                <PrivateRoute allowedRoles={['Admin']}>
-                  <DoctorsPage />
-                </PrivateRoute>
-              }
-            />
-
-            {/* Appointments Management (Admin/Doctor/Patient) */}
-            <Route
-              path="/appointments"
-              element={
-                <PrivateRoute allowedRoles={['Admin', 'Doctor', 'Patient']}>
-                  <AppointmentsPage />
-                </PrivateRoute>
-              }
-            />
-
-            {/* Medical Records Management (Doctor/Patient) */}
-            <Route
-              path="/records"
-              element={
-                <PrivateRoute allowedRoles={['Doctor', 'Patient']}>
-                  <MedicalRecordsPage />
-                </PrivateRoute>
-              }
-            />
-
-            {/* Billing Management (Admin/Patient) */}
-            <Route
-              path="/billing"
-              element={
-                <PrivateRoute allowedRoles={['Admin', 'Patient']}>
-                  <BillingPage />
-                </PrivateRoute>
-              }
-            />
-
-            {/* Settings Page (Admin/Doctor/Patient) */}
-            <Route
-              path="/settings"
-              element={
-                <PrivateRoute allowedRoles={['Admin', 'Doctor', 'Patient']}>
-                  <SettingsPage />
-                </PrivateRoute>
-              }
-            />
-
-            {/* Catch-all route for 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <RouterContent />
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+const RouterContent = () => {
+  const { isAuthenticated, userRole } = useAuth();
+
+  const getDashboardPath = (role: string | null): string => {
+    switch (role) {
+      case "Admin":
+        return "/admin";
+      case "Doctor":
+        return "/"; // Doctor dashboard is the root path for logged in doctors
+      case "Patient":
+        return "/patient";
+      case "Staff":
+        return "/staff";
+      default:
+        return "/login"; // Fallback if no role or unauthenticated
+    }
+  };
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Root path handling */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated() ? (
+              <Navigate to={getDashboardPath(userRole)} replace />
+            ) : (
+              <HomePage />
+            )
+          }
+        />
+
+        {/* Doctor Dashboard is now part of private routes, or accessible directly via / */}
+        <Route path="/dashboard" element={<PrivateRoute allowedRoles={["Doctor"]}><Index /></PrivateRoute>} />
+        <Route path="/patient" element={<PrivateRoute allowedRoles={["Patient"]}><PatientPortal /></PrivateRoute>} />
+        <Route path="/staff" element={<PrivateRoute allowedRoles={["Staff"]}><StaffDashboard /></PrivateRoute>} />
+        <Route path="/admin" element={<PrivateRoute allowedRoles={["Admin"]}><AdminDashboard /></PrivateRoute>} />
+
+        {/* Other protected routes */}
+        <Route
+          path="/doctors"
+          element={
+            <PrivateRoute allowedRoles={['Admin']}>
+              <DoctorsPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/appointments"
+          element={
+            <PrivateRoute allowedRoles={['Admin', 'Doctor', 'Patient']}>
+              <AppointmentsPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/records"
+          element={
+            <PrivateRoute allowedRoles={['Doctor', 'Patient']}>
+              <MedicalRecordsPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/billing"
+          element={
+            <PrivateRoute allowedRoles={['Admin', 'Patient']}>
+              <BillingPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute allowedRoles={['Admin', 'Doctor', 'Patient']}>
+              <SettingsPage />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Catch-all route for 404 */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
 
 export default App;
