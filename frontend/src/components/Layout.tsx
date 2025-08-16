@@ -17,7 +17,7 @@ export const Layout = ({ children }: LayoutProps) => {
             {children}
           </main>
           <footer className="bg-card border-t border-border/50 p-4 text-center text-sm text-muted-foreground">
-            2025 All rights reserved by Ansh Bhogal
+            © 2025 Ansh Bhogal. All rights reserved.
           </footer>
         </div>
       </div>
