@@ -5,6 +5,10 @@ from config import Config
 from hospital.extensions import db, migrate, jwt
 from flask_cors import CORS # Import CORS
 
+# Import models to ensure they are registered with SQLAlchemy
+from hospital.models.user import User
+from hospital.models.role import Role
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
