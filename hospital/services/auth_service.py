@@ -28,5 +28,6 @@ class AuthService:
         if user and user.check_password(password):
             access_token = create_access_token(identity=user.user_id)
             refresh_token = create_refresh_token(identity=user.user_id)
-            return access_token, refresh_token, None
-        return None, None, {'message': 'Invalid credentials'}
+            user_info = user.serialize() # Serialize user object to include role
+            return access_token, refresh_token, user_info, None # Return user_info
+        return None, None, None, {'message': 'Invalid credentials'}

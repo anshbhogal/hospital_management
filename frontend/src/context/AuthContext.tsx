@@ -19,11 +19,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const storedToken = localStorage.getItem('access_token');
-    if (storedToken) {
+    const storedUserInfo = localStorage.getItem('user_info');
+    if (storedToken && storedUserInfo) {
       setToken(storedToken);
-      // In a real app, you would also fetch user data based on the token
-      // For now, a dummy user if token exists
-      // setUser({ id: 1, name: 'Logged In User', email: 'user@example.com', role: 'Admin' });
+      try {
+        setUser(JSON.parse(storedUserInfo));
+      } catch (e) {
+        console.error("Failed to parse user info from localStorage", e);
+        // Clear invalid storage if parsing fails
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_info');
+      }
     }
   }, []);
 
@@ -33,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { access_token, refresh_token, user_info } = data;
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('refresh_token', refresh_token);
+      localStorage.setItem('user_info', JSON.stringify(user_info)); // Store user_info
       setToken(access_token);
       setUser(user_info); // Assuming user_info is returned by login
       return data;
@@ -56,12 +64,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_info'); // Remove user_info on logout
     setToken(null);
     setUser(null);
   };
 
   const isAuthenticated = (): boolean => {
-    return !!token; // Check if a token exists
+    return !!token && !!user; // Ensure both token and user object exist
   };
 
   const userRole = user ? user.role : 'Guest'; // Get user role from state

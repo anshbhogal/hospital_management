@@ -1,11 +1,13 @@
 from hospital.extensions import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from hospital.models.role import Role # Import Role model
 
 class User(db.Model):
     __tablename__ = 'users'
     user_id = db.Column(db.Integer, primary_key=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.role_id'))
+    role = db.relationship('Role', backref='users') # Add relationship to Role
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
@@ -20,6 +22,16 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def serialize(self):
+        return {
+            'user_id': self.user_id,
+            'name': self.name,
+            'email': self.email,
+            'role': self.role.name if self.role else None, # Include role name
+            'phone': self.phone,
+            'created_at': self.created_at.isoformat()
+        }
 
     def __repr__(self):
         return f'<User {self.email}>'

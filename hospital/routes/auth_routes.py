@@ -28,12 +28,13 @@ def login():
     email = data.get('email')
     password = data.get('password')
 
-    access_token, refresh_token, error = AuthService.login_user(email, password)
+    access_token, refresh_token, user_info, error = AuthService.login_user(email, password)
 
     if error:
         return jsonify(error), 401
     
     return jsonify({
         'access_token': access_token,
-        'refresh_token': refresh_token
+        'refresh_token': refresh_token,
+        'user_info': user_info # Include user_info in the response
     }), 200
