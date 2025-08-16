@@ -5,3 +5,5 @@ Flask-JWT-Extended
 PyMySQL
 python-dotenv
 requests
+gunicorn
+flask-cors

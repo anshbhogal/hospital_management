@@ -1,11 +1,16 @@
-from flask import Flask
+import os
+from flask import Flask, jsonify
 from dotenv import load_dotenv
 from config import Config
 from hospital.extensions import db, migrate, jwt
+from flask_cors import CORS # Import CORS
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # CORS: allow only your deployed frontend origin later
+    CORS(app, resources={r"/*": {"origins": "*"}}) # Add this line
 
     # Initialize extensions
     db.init_app(app)
@@ -29,7 +34,9 @@ def create_app():
 
     return app
 
+# expose for gunicorn: app:app
+app = create_app()
+
 if __name__ == '__main__':
     load_dotenv() # Load environment variables
-    app = create_app()
     app.run(debug=True)
