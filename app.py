@@ -9,6 +9,10 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    @app.route("/ping")
+    def ping():
+        return "pong"
+
     # CORS: allow only your deployed frontend origin later
     CORS(app, resources={r"/*": {"origins": "*"}}) # Add this line
 
