@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute
 import Index from "./pages/Index";
 import PatientPortal from "./pages/PatientPortal";
 import StaffDashboard from "./pages/StaffDashboard";
