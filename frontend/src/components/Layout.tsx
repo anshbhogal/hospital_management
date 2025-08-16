@@ -16,6 +16,9 @@ export const Layout = ({ children }: LayoutProps) => {
           <main className="flex-1 overflow-auto p-6">
             {children}
           </main>
+          <footer className="bg-card border-t border-border/50 p-4 text-center text-sm text-muted-foreground">
+            2025 All rights reserved by Ansh Bhogal
+          </footer>
         </div>
       </div>
     </div>
