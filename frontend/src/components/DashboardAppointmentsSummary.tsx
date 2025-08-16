@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, User, Calendar } from "lucide-react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 interface Appointment {
   id: string;
@@ -70,6 +71,12 @@ const getStatusBadge = (status: Appointment["status"]) => {
 };
 
 export const AppointmentsTable = () => {
+  const navigate = useNavigate(); // Initialize useNavigate
+
+  const handleViewAll = () => {
+    navigate("/appointments");
+  };
+
   return (
     <Card className="gradient-card border-border/50 shadow-medical">
       <CardHeader className="border-b border-border/50">
@@ -78,7 +85,7 @@ export const AppointmentsTable = () => {
             <Calendar className="h-5 w-5 text-primary" />
             Today's Appointments
           </CardTitle>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleViewAll}> {/* Add onClick handler */}
             View All
           </Button>
         </div>

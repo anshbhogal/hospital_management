@@ -48,3 +48,8 @@ class BillingService:
             db.session.commit()
             return True
         return False
+
+    @staticmethod
+    def calculate_total_revenue():
+        total_revenue = db.session.query(db.func.sum(Billing.total_amount)).scalar()
+        return total_revenue if total_revenue is not None else 0

@@ -35,6 +35,13 @@ def get_bills():
         'insurance_claim': b.insurance_claim
     } for b in bills]), 200
 
+@billing_bp.route('/summary', methods=['GET'])
+@jwt_required()
+# @admin_required # Uncomment and implement this decorator for admin-only access
+def get_billing_summary():
+    total_revenue = BillingService.calculate_total_revenue()
+    return jsonify({'total_revenue': str(total_revenue)}), 200
+
 @billing_bp.route('/<int:bill_id>', methods=['GET'])
 @jwt_required()
 def get_bill(bill_id):

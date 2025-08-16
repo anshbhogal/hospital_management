@@ -24,3 +24,8 @@ export const deleteBill = async (billId) => {
   const response = await apiClient.delete(`/billing/${billId}`);
   return response.data;
 };
+
+export const getBillingSummary = async () => {
+  const response = await apiClient.get('/billing/summary');
+  return response.data;
+};

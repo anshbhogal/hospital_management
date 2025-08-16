@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPatients } from "../api/patients";
 import { getDoctors } from "../api/doctors";
 import { getAppointments } from "../api/appointments";
+import { getBillingSummary } from "../api/billing"; // Import getBillingSummary
 import { useAuth } from "../context/AuthContext";
 
 const Index = () => {
@@ -16,11 +17,13 @@ const Index = () => {
   const { data: patientsData } = useQuery({ queryKey: ['patients'], queryFn: getPatients });
   const { data: doctorsData } = useQuery({ queryKey: ['doctors'], queryFn: getDoctors });
   const { data: appointmentsData } = useQuery({ queryKey: ['appointments'], queryFn: getAppointments });
+  const { data: billingSummaryData } = useQuery({ queryKey: ['billingSummary'], queryFn: getBillingSummary }); // Fetch billing summary
 
   const totalPatients = patientsData ? patientsData.length : 0;
   const activeDoctors = doctorsData ? doctorsData.length : 0;
   const todaysAppointments = appointmentsData ? appointmentsData.filter(app => new Date(app.appointment_date).toDateString() === new Date().toDateString()).length : 0;
   const totalAppointments = appointmentsData ? appointmentsData.length : 0;
+  const totalRevenue = billingSummaryData ? parseFloat(billingSummaryData.total_revenue).toLocaleString('en-US', { style: 'currency', currency: 'USD' }) : "$0";
 
   return (
     <Layout>
@@ -73,7 +76,7 @@ const Index = () => {
           />
           <StatsCard
             title="Revenue (Month)"
-            value="$127,450" // Placeholder, needs backend for billing summary
+            value={totalRevenue} // Use fetched revenue data
             icon={CreditCard}
             change="+8% from last month"
             changeType="positive"

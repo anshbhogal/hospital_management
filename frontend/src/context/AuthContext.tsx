@@ -7,6 +7,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<any>;
   register: (name: string, email: string, password: string, role_name: string) => Promise<any>;
   logout: () => void;
+  isAuthenticated: () => boolean;
+  userRole: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setToken(storedToken);
       // In a real app, you would also fetch user data based on the token
       // For now, a dummy user if token exists
-      setUser({ id: 1, name: 'Logged In User', email: 'user@example.com', role: 'Admin' }); 
+      // setUser({ id: 1, name: 'Logged In User', email: 'user@example.com', role: 'Admin' });
     }
   }, []);
 
@@ -58,8 +60,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const isAuthenticated = (): boolean => {
+    return !!token; // Check if a token exists
+  };
+
+  const userRole = user ? user.role : 'Guest'; // Get user role from state
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, isAuthenticated, userRole }}>
       {children}
     </AuthContext.Provider>
   );
