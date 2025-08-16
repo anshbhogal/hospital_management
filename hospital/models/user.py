@@ -7,7 +7,7 @@ class User(db.Model):
     __tablename__ = 'users'
     user_id = db.Column(db.Integer, primary_key=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.role_id'))
-    role = db.relationship('Role') # Removed backref='users'
+    role = db.relationship('Role', back_populates='users') # Use back_populates
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
