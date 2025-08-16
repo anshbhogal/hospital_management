@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Stethoscope, User, Users, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useAuth } from "../context/AuthContext"; // Import useAuth
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,14 +27,44 @@ const Login = () => {
     emergencyContact: ""
   });
   const { toast } = useToast();
+  const navigate = useNavigate(); // Initialize useNavigate
+  const { login, userRole } = useAuth(); // Get login function and userRole from AuthContext
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement login API call
-    toast({
-      title: "Login Successful",
-      description: "Welcome back! Redirecting to your dashboard...",
-    });
+    try {
+      await login(loginData.email, loginData.password);
+      toast({
+        title: "Login Successful",
+        description: "Welcome back! Redirecting to your dashboard...",
+      });
+
+      // Redirect based on user role
+      let redirectPath = "/"; // Default to Doctor Dashboard
+      switch (userRole) {
+        case "Admin":
+          redirectPath = "/admin";
+          break;
+        case "Patient":
+          redirectPath = "/patient";
+          break;
+        case "Staff":
+          redirectPath = "/staff";
+          break;
+        case "Doctor": // Doctor dashboard is the root path
+        default:
+          redirectPath = "/";
+          break;
+      }
+      navigate(redirectPath);
+
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message || "Invalid email or password.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
