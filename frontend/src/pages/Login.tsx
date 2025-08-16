@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,18 +28,10 @@ const Login = () => {
   });
   const { toast } = useToast();
   const navigate = useNavigate(); // Initialize useNavigate
-  const { login, userRole } = useAuth(); // Get login function and userRole from AuthContext
+  const { login, isAuthenticated, userRole } = useAuth(); // Get isAuthenticated and userRole
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await login(loginData.email, loginData.password);
-      toast({
-        title: "Login Successful",
-        description: "Welcome back! Redirecting to your dashboard...",
-      });
-
-      // Redirect based on user role
+  useEffect(() => {
+    if (isAuthenticated()) {
       let redirectPath = "/"; // Default to Doctor Dashboard
       switch (userRole) {
         case "Admin":
@@ -51,12 +43,25 @@ const Login = () => {
         case "Staff":
           redirectPath = "/staff";
           break;
-        case "Doctor": // Doctor dashboard is the root path
+        case "Doctor":
         default:
           redirectPath = "/";
           break;
       }
-      navigate(redirectPath);
+      navigate(redirectPath, { replace: true }); // Use replace to prevent going back to login
+    }
+  }, [isAuthenticated, userRole, navigate]); // Depend on these values
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await login(loginData.email, loginData.password);
+      toast({
+        title: "Login Successful",
+        description: "Welcome back!", // Removed redirection message
+      });
+
+      // Redirection is now handled by useEffect
 
     } catch (error: any) {
       toast({
