@@ -13,6 +13,10 @@ def create_app():
     def ping():
         return "pong"
 
+    @app.route('/')
+    def home():
+        return jsonify({"status": "Backend is running!"}), 200
+
     # CORS: allow only your deployed frontend origin later
     CORS(app, resources={r"/*": {"origins": "*"}}) # Add this line
 
