@@ -9,13 +9,13 @@ The primary goal of this HMS is to automate and centralize hospital operations, 
 The Hospital Management System includes the following key features:
 
 *   **User Authentication & Authorization**: Secure registration and login for different user roles (Admin, Doctor, Patient) using JWT (JSON Web Tokens).
-*   **Role-Based Access Control (RBAC)**: Ensures users can only access features and data relevant to their assigned roles.
+*   **Role-Based Access Control (RBAC)**: Ensures users can only access features and data relevant to their assigned roles, with dynamic sidebar visibility and protected routes.
 *   **Patient Management**: CRUD (Create, Read, Update, Delete) operations for patient records, accessible by authorized personnel.
 *   **Doctor Management**: CRUD operations for doctor profiles, including specialization and contact details, primarily managed by administrators.
 *   **Appointment Scheduling**: Creation, viewing, updating, and cancellation of appointments for patients with doctors.
 *   **Medical Records Management**: Digital storage and management of patient medical histories, diagnoses, prescriptions, and lab results.
-*   **Billing & Payments**: Management of patient bills, tracking total amounts, payment statuses, and insurance claims.
-*   **Dashboard Views**: Role-specific dashboards providing quick overviews and access to relevant information for Admins, Doctors, and Patients.
+*   **Billing & Payments**: Management of patient bills, tracking total amounts, payment statuses, and insurance claims, including a real-time revenue dashboard for administrators.
+*   **Dashboard Views**: Role-specific dashboards providing quick overviews and access to relevant information for Admins, Doctors, and Patients, now with dynamic content and interactive navigation buttons.
 *   **Responsive User Interface**: A modern and intuitive web interface built with React.js, styled with Tailwind CSS, and utilizing Shadcn UI components.
 
 ## Tech Stack
@@ -29,6 +29,7 @@ The project leverages a full-stack architecture with Python for the backend and 
 *   **Database Migrations**: Flask-Migrate
 *   **Authentication**: Flask-JWT-Extended (for JWT generation and verification)
 *   **MySQL Connector**: PyMySQL
+*   **Web Server Gateway Interface (WSGI)**: Gunicorn
 *   **Environment Variables**: python-dotenv
 *   **API Testing**: `requests` library
 
@@ -41,8 +42,6 @@ The project leverages a full-stack architecture with Python for the backend and 
 *   **Data Fetching & State Management**: `@tanstack/react-query`
 *   **HTTP Client**: Axios
 *   **Routing**: React Router DOM
-*   **Form Management**: React Hook Form
-*   **Form Validation**: Zod
 
 ## Project Structure
 The project is organized into two main directories: `hospital` (for the Flask backend) and `frontend` (for the React application).
@@ -92,6 +91,7 @@ hospital_management/
 │   │   ├── components/     # Reusable React components
 │   │   │   ├── ui/         # Shadcn UI components
 │   │   │   ├── forms/      # Reusable form components (e.g., PatientForm)
+│   │   │   ├── PrivateRoute.tsx # Component for protected routes
 │   │   │   ├── DashboardAppointmentsSummary.tsx # Renamed old AppointmentsTable
 │   │   │   ├── AppointmentsTable.tsx  # New table for AppointmentsPage
 │   │   │   ├── PatientsTable.tsx
@@ -101,6 +101,7 @@ hospital_management/
 │   │   ├── context/        # React Context API for global state (e.g., AuthContext)
 │   │   │   └── AuthContext.tsx
 │   │   ├── pages/          # Application pages/views
+│   │   │   ├── HomePage.tsx          # Public landing page
 │   │   │   ├── Index.tsx           # Admin/Doctor Dashboard
 │   │   │   ├── PatientPortal.tsx   # Patient-specific Dashboard
 │   │   │   ├── Login.tsx
@@ -119,6 +120,7 @@ hospital_management/
 │   ├── tailwind.config.js
 │   └── tsconfig.json
 ├── .env                    # Environment variables for backend
+├── Procfile                # Gunicorn configuration for Render deployment
 ├── requirements.txt        # Python dependencies
 ├── app.py                  # Flask application entry point
 ├── config.py               # Flask configuration
@@ -178,18 +180,18 @@ The backend is built with Flask, providing a RESTful API for the frontend to int
 The Python dependencies are managed via `requirements.txt`. Key libraries include Flask for the web framework, Flask-SQLAlchemy for ORM, Flask-Migrate for database migrations, and Flask-JWT-Extended for JWT authentication.
 
 ### Core Components
-*   **`app.py`**: The main Flask application instance, responsible for initializing extensions and registering API blueprints.
+*   **`app.py`**: The main Flask application instance, responsible for initializing extensions and registering API blueprints. It now explicitly imports all core models (`User`, `Role`) to ensure proper SQLAlchemy mapper registration.
 *   **`config.py`**: Centralized configuration for the Flask app, including database URI, JWT secret keys, and token expiration times. Environment variables are used for sensitive information.
 *   **`hospital/extensions.py`**: Initializes Flask extensions globally to prevent circular imports and ensure consistent access across the application.
-*   **`hospital/models/`**: Defines the database schema using SQLAlchemy ORM models. Each model file (`user.py`, `patient.py`, etc.) corresponds to a database table and its relationships. Methods for password hashing and verification are included in the `User` model.
-*   **`hospital/services/`**: Contains the business logic layer. Service classes (e.g., `AuthService`, `PatientService`) encapsulate operations like user registration, login, and CRUD operations for each entity, interacting directly with the SQLAlchemy models. This adheres to a service-repository pattern, separating concerns from routing.
-*   **`hospital/routes/`**: Defines Flask Blueprints and API endpoints for each module. These routes parse incoming requests, call the appropriate service methods, and return JSON responses. JWT authentication decorators (`@jwt_required()`) are extensively used to protect sensitive endpoints, ensuring only authenticated and authorized users can access them.
+*   **`hospital/models/`**: Defines the database schema using SQLAlchemy ORM models. Each model file (`user.py`, `patient.py`, etc.) corresponds to a database table and its relationships. Methods for password hashing and verification are included in the `User` model. Importantly, bidirectional relationships (e.g., between `User` and `Role`) now use `back_populates` correctly to avoid SQLAlchemy initialization errors.
+*   **`hospital/services/`**: Contains the business logic layer. Service classes (e.g., `AuthService`, `PatientService`) encapsulate operations like user registration, login, and CRUD operations for each entity, interacting directly with the SQLAlchemy models. This adheres to a service-repository pattern, separating concerns from routing. The `AuthService.login_user` now returns comprehensive `user_info` including the user's role.
+*   **`hospital/routes/`**: Defines Flask Blueprints and API endpoints for each module. These routes parse incoming requests, call the appropriate service methods, and return JSON responses. JWT authentication decorators (`@jwt_required()`) are extensively used to protect sensitive endpoints, ensuring only authenticated and authorized users can access them. The `/auth/login` endpoint now correctly returns `user_info`. New endpoints like `/billing/summary` have been added to provide aggregated data.
 
 ### Authentication
-JWT (JSON Web Tokens) are used for secure authentication. Upon successful login, the backend issues an access token and a refresh token. The access token is then sent with subsequent requests in the `Authorization` header to authenticate the user and verify their identity and roles.
+JWT (JSON Web Tokens) are used for secure authentication. Upon successful login, the backend issues an access token and a refresh token, along with detailed `user_info` (including the user's role). The access token is then sent with subsequent requests in the `Authorization` header to authenticate the user and verify their identity and roles.
 
 ### Database Migrations
-Flask-Migrate is used to manage database schema changes. This allows for version control of the database, making it easy to apply and revert schema updates as the application evolves. Commands like `flask db init`, `flask db migrate`, and `flask db upgrade` are used for this purpose.
+Flask-Migrate is used to manage database schema changes. This allows for version control of the database, making it easy to apply and revert schema updates as the application evolves. Commands like `flask db init`, `flask db migrate`, and `flask db upgrade` are used for this purpose. For Render deployment, `flask db upgrade` is integrated into the "Start Command" to ensure tables are created/updated on deployment.
 
 ### API Testing
 A dedicated Python script (`tests/test_auth.py`) was created using the `requests` library to test the authentication API endpoints (registration and login). This script demonstrates how to interact with the Flask backend programmatically and verify responses.
@@ -201,60 +203,62 @@ The frontend is a modern Single Page Application (SPA) built with React.js, focu
 The frontend is built using Vite, a fast build tool for modern web projects. Node.js and npm are used for dependency management. Key UI/styling libraries include Tailwind CSS for utility-first styling and Shadcn UI for accessible and customizable React components. Data fetching and state management are handled by `@tanstack/react-query`, and Axios is used as the HTTP client.
 
 ### Core Components and Libraries
-*   **`frontend/src/App.tsx`**: The main entry point for the React application, responsible for setting up the `BrowserRouter` for routing, `QueryClientProvider` for React Query, and the custom `AuthProvider` for global authentication state. It defines all routes and implements the `PrivateRoute` component for protected routes.
-*   **`frontend/src/context/AuthContext.tsx`**: Implements a React Context to provide global authentication state (user information, JWT tokens) to all components in the application. It includes functions for `login`, `register`, and `logout`, managing tokens in `localStorage`.
-*   **`frontend/src/api/`**: Contains modular API service functions (e.g., `patients.ts`, `doctors.ts`, `appointments.ts`, `medical_records.ts`, `billing.ts`). These files use a centralized `apiClient` (Axios instance with request interceptors for attaching JWT tokens) to make authenticated calls to the Flask backend. This separation of concerns keeps API logic clean and reusable.
-*   **`frontend/src/pages/`**: Houses the main views of the application, such as `Login.tsx`, `Index.tsx` (Admin/Doctor Dashboard), `PatientPortal.tsx` (Patient Dashboard), and placeholder pages for `PatientsPage.tsx`, `DoctorsPage.tsx`, `AppointmentsPage.tsx`, `MedicalRecordsPage.tsx`, `BillingPage.tsx`, and `SettingsPage.tsx`.
-    *   **Dashboard Integration**: `Index.tsx` and `PatientPortal.tsx` utilize `useQuery` hooks to fetch real-time data from the backend APIs (e.g., total patients, active doctors, upcoming appointments) and display them in `StatsCard` and custom table components.
+*   **`frontend/src/App.tsx`**: The main entry point for the React application. It's configured with `BrowserRouter`, `QueryClientProvider` for React Query, and the custom `AuthProvider` for global authentication state. It now implements sophisticated routing: `HomePage.tsx` for unauthenticated users at the root, and role-based redirection to specific dashboards (e.g., `/admin`, `/patient`) upon successful login.
+*   **`frontend/src/context/AuthContext.tsx`**: Implements a React Context to provide global authentication state (user information, JWT tokens) to all components. It includes functions for `login`, `register`, and `logout`. Crucially, it now stores and retrieves full `user_info` (including the role) from `localStorage` to ensure session persistence across page loads and refreshes.
+*   **`frontend/src/api/`**: Contains modular API service functions (e.g., `patients.ts`, `doctors.ts`, `appointments.ts`, `medical_records.ts`, `billing.ts`). These files use a centralized `apiClient` (Axios instance with request interceptors for attaching JWT tokens) to make authenticated calls. `frontend/src/api/billing.ts` now includes a `getBillingSummary` function.
+*   **`frontend/src/pages/`**: Houses the main views of the application, such as:
+    *   `HomePage.tsx`: A new public landing page displaying general hospital details and facilities for unauthenticated users.
+    *   `Login.tsx`: The login page, now featuring a refactored `useEffect` hook to ensure reliable role-based redirection after successful authentication.
+    *   `Index.tsx` (Admin/Doctor Dashboard): Updated to fetch and display real revenue data from the backend.
+    *   `PatientPortal.tsx` (Patient Dashboard), and placeholder pages for `PatientsPage.tsx`, `DoctorsPage.tsx`, `AppointmentsPage.tsx`, `MedicalRecordsPage.tsx`, `BillingPage.tsx`, and `SettingsPage.tsx`.
 *   **`frontend/src/components/`**: Contains reusable UI components, including:
-    *   **`ui/`**: Shadcn UI components (buttons, cards, tables, forms, dialogs, toasts, etc.) used throughout the application for a consistent design system.
-    *   **`forms/`**: Dedicated form components (e.g., `PatientForm.tsx`, `DoctorForm.tsx`, `AppointmentForm.tsx`, `MedicalRecordForm.tsx`, `BillingForm.tsx`) built with `React Hook Form` for efficient form management and `Zod` for schema validation. These forms handle both creation and editing of records and use `useMutation` from React Query to interact with backend APIs.
-    *   **`tables/`**: Custom table components (e.g., `PatientsTable.tsx`, `DoctorsTable.tsx`, `AppointmentsTable.tsx`, `MedicalRecordsTable.tsx`, `BillingTable.tsx`) to display lists of data with actions for editing and deleting records. They utilize `useMutation` for delete operations and `AlertDialog` for confirmation.
-*   **`frontend/src/components/Sidebar.tsx`**: The main navigation component that dynamically renders links based on the authenticated user's role, ensuring role-based access to different sections of the application. It also includes a logout functionality.
+    *   **`PrivateRoute.tsx`**: A new component used to secure routes, checking authentication status and `allowedRoles` before rendering child components.
+    *   **`Sidebar.tsx`**: The main navigation component, now dynamically rendering links and user info/logout button based on the authenticated user's role and status.
+    *   **Dashboard Interactivity**: Buttons in `DashboardAppointmentsSummary.tsx` ("View All") and `QuickActions.tsx` (e.g., "New Patient", "Schedule Appointment") are now functional and navigate to their respective pages.
 
 ### Authentication Flow
 The frontend authentication flow involves:
 1.  **Login**: Users enter credentials on `Login.tsx`, which calls the `loginUser` API.
-2.  **Token Storage**: Upon successful login, `access_token` and `refresh_token` received from the backend are stored in `localStorage`.
-3.  **AuthContext**: The `AuthContext` reads these tokens on application load and provides the authentication state (`user`, `token`) to all child components.
-4.  **API Interceptor**: The `apiClient` (Axios instance) is configured with a request interceptor that automatically attaches the `access_token` to the `Authorization` header of every outgoing request, ensuring authenticated API calls.
-5.  **Protected Routes**: The `PrivateRoute` component in `App.tsx` checks if a user is authenticated and has the necessary role(s) before rendering a route. If not, it redirects them to the login page or restricts access.
+2.  **Token & User Info Storage**: Upon successful login, `access_token`, `refresh_token`, and detailed `user_info` (including role) received from the backend are stored in `localStorage`.
+3.  **AuthContext**: The `AuthContext` now robustly reads these tokens and `user_info` on application load, providing the authentication state (`user`, `token`, `isAuthenticated`, `userRole`) to all components.
+4.  **API Interceptor**: The `apiClient` (Axios instance) automatically attaches the `access_token` to the `Authorization` header of every outgoing request.
+5.  **Protected Routes**: The `PrivateRoute` component in `App.tsx` and conditional rendering in `App.tsx` itself check if a user is authenticated and has the necessary role(s) before rendering a route or redirecting.
 
 ### Role-Based Access Control
-The application implements RBAC by associating user roles (Admin, Doctor, Patient) with specific routes and navigation items. The `PrivateRoute` component and the `Sidebar` component dynamically control visibility and access based on the `user.role` stored in the `AuthContext`.
+The application implements RBAC by associating user roles (Admin, Doctor, Patient, Staff) with specific backend endpoints, frontend routes, and navigation items. The `PrivateRoute` component and the `Sidebar` component dynamically control visibility and access based on the `user.role` stored in the `AuthContext`.
 
 ### Modular API Integration
 Each core module (Patients, Doctors, Appointments, Medical Records, Billing) has its own dedicated API service file in `frontend/src/api/` (e.g., `patients.ts`). These services export functions for CRUD operations, making the API calls organized and maintainable. These functions are then utilized by `useQuery` and `useMutation` hooks in the respective pages and components to fetch and manipulate data.
 
 ## Development Workflow: How it was Built from Scratch
-The project was developed iteratively, starting with the backend API, followed by a phased frontend integration.
+The project was developed iteratively, starting with the backend API, followed by a phased frontend integration, and continuous debugging to ensure full functionality and robust deployment.
 
 1.  **Backend Initialization**:
     *   Flask application structure was set up with `app.py`, `config.py`, and `extensions.py`.
     *   Database models were defined using Flask-SQLAlchemy in `hospital/models/`.
     *   Flask-Migrate was configured and used to initialize and manage database migrations (`flask db init`, `flask db migrate`, `flask db upgrade`). This ensured the database schema could evolve with the application.
     *   Initial `User` and `Role` models were created, along with `AuthService` and `auth_routes` for registration and login functionality.
-    *   A Python `requests` script (`tests/test_auth.py`) was implemented for testing backend authentication endpoints to ensure they were working correctly before proceeding to the frontend.
-    *   Subsequent models (Patient, Doctor, Appointment, MedicalRecord, Billing), services, and routes were added module by module, following the same pattern (model -> service -> route).
+    *   A Python `requests` script (`tests/test_auth.py`) was implemented for testing backend authentication endpoints.
+    *   Subsequent models (Patient, Doctor, Appointment, MedicalRecord, Billing), services, and routes were added module by module.
 
-2.  **Initial Frontend Attempt (React.js - Removed)**:
-    *   An initial React.js frontend was attempted using `create-react-app`. This phase involved significant troubleshooting due to PowerShell command syntax issues, `npm` problems, and incorrect file placements. This ultimately led to a decision to switch to a more modern and stable frontend boilerplate.
+2.  **Deployment Configuration & Debugging**:
+    *   Configured `Procfile` (`web: gunicorn --bind 0.0.0.0:$PORT app:app`) for Render deployment, ensuring the backend listens on the correct port.
+    *   Updated `app.py`'s `app.run` to `host="0.0.0.0", port=10000` for local Gunicorn compatibility.
+    *   Ensured frontend Axios client (`frontend/src/api/index.ts`) uses `VITE_API_BASE_URL` environment variable for backend API calls.
+    *   **Resolved database table missing errors**: Fixed `Table 'roles' doesn't exist` on Render by integrating `flask db upgrade` into the Render "Start Command" (`flask db upgrade && gunicorn ...`), ensuring migrations are applied during deployment.
+    *   **Fixed SQLAlchemy relationship errors**: Resolved `ArgumentError` related to back-references by consistently using `back_populates` in both `hospital/models/user.py` and `hospital/models/role.py`, and ensuring explicit model imports in `app.py` to prevent mapper initialization issues.
 
-3.  **New Frontend Integration (React.js with Vite, Tailwind, Shadcn UI)**:
-    *   A new React frontend project was initiated using Vite, Tailwind CSS, and Shadcn UI, providing a solid foundation and modern development experience.
-    *   **Core Setup**: `AuthContext` was implemented for global authentication state, `App.tsx` was configured with `BrowserRouter` and `PrivateRoute` for robust routing and access control.
-    *   **Login Integration**: `Login.tsx` was connected to the backend authentication API (`auth.ts`) using Axios, handling user input and token storage.
-    *   **Dashboard Data Integration**: The `Index.tsx` (Admin/Doctor Dashboard) and `PatientPortal.tsx` were updated to fetch real data from the backend using `@tanstack/react-query` and display it in their respective `StatsCard` and table components (`DashboardAppointmentsSummary.tsx`, `PatientAppointments.tsx`, `PatientMedicalRecords.tsx`, `PatientBilling.tsx`). This involved updating existing components to accept props from fetched data.
-    *   **Module-wise CRUD Integration**: For each major module (Patients, Doctors, Appointments, Medical Records, Billing):
-        *   Placeholder pages (`PatientsPage.tsx`, `DoctorsPage.tsx`, etc.) were created and integrated into `App.tsx` with `PrivateRoute` and `allowedRoles`.
-        *   Dedicated API service files (`patients.ts`, `doctors.ts`, etc.) were created/reviewed to ensure correct API call structures.
-        *   Table components (`PatientsTable.tsx`, `DoctorsTable.tsx`, etc.) were developed to display lists of records.
-        *   Form components (`PatientForm.tsx`, `DoctorForm.tsx`, etc.) were implemented using `React Hook Form` and `Zod` for adding and editing records.
-        *   `useQuery` hooks were used in pages to fetch lists of records, and `useMutation` hooks were implemented in forms and tables for create, update, and delete operations, ensuring automatic cache invalidation and UI updates.
-        *   Delete functionalities were enhanced with `AlertDialog` for user confirmation.
-    *   **Refactoring**: During development, a notable refactoring was renaming `frontend/src/components/AppointmentsTable.tsx` to `DashboardAppointmentsSummary.tsx` to avoid naming conflicts when creating a new, dedicated `AppointmentsTable.tsx` for the full appointments management page.
+3.  **Frontend Integration (React.js with Vite, Tailwind, Shadcn UI)**:
+    *   **Core Setup**: `AuthContext` was implemented for global authentication state. `App.tsx` was configured with `BrowserRouter` and `PrivateRoute` for robust routing and access control.
+    *   **Public Home Page**: Introduced `frontend/src/pages/HomePage.tsx` to serve as the default landing page for unauthenticated users, displaying general hospital information.
+    *   **Dynamic Routing**: `App.tsx` was updated to conditionally render `HomePage` for unauthenticated users and redirect authenticated users to their specific dashboards (e.g., `/admin`, `/patient`) based on their roles.
+    *   **Login Integration & Persistence**: `Login.tsx` was connected to the backend authentication API (`auth.ts`) using Axios. `AuthContext` was enhanced to store and retrieve `user_info` (with role) from `localStorage`, ensuring login persistence. `Login.tsx` was refactored to use a `useEffect` hook for reliable role-based redirection after successful authentication.
+    *   **Dashboard Data Integration**: `Index.tsx` (Admin/Doctor Dashboard) was updated to fetch real revenue data from the backend using `@tanstack/react-query` and display it in `StatsCard`.
+    *   **Module-wise CRUD Integration**: Placeholder pages (`PatientsPage.tsx`, `DoctorsPage.tsx`, etc.) were created and integrated into `App.tsx` with `PrivateRoute` and `allowedRoles`. Dedicated API service files were created/reviewed, and `useQuery`/`useMutation` hooks were implemented for data fetching and manipulation.
+    *   **UI/UX Improvements**: Enabled navigation for dashboard buttons like "View All" in `DashboardAppointmentsSummary.tsx` and Quick Actions in `QuickActions.tsx`. A global footer was added to all pages via the `Layout` component.
+    *   **Refactoring**: `DashboardAppointmentsSummary.tsx` was renamed from `AppointmentsTable.tsx` for clarity.
 
-This iterative approach, combined with systematic problem-solving (e.g., fixing PowerShell issues, debugging API connections, reorganizing frontend components), led to the current functional and well-structured application.
+This iterative approach, combined with systematic problem-solving, led to the current functional and well-structured application, ensuring robust backend-frontend communication, proper authentication, and dynamic content display.
 
 ## Getting Started
 
