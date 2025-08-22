@@ -19,6 +19,8 @@ import SettingsPage from "./pages/SettingsPage";
 import HomePage from "./pages/HomePage"; // Import HomePage
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary"; // Import ErrorBoundary
+import AdminLayout from "./components/Layout/AdminLayout";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -97,7 +99,16 @@ const RouterContent = () => {
             </PrivateRoute>
           }
         />
-
+        <Route
+    path="/admin"
+  element={
+    <PrivateRoute allowedRoles={["Admin"]}>
+      <AdminLayout>
+        <AdminDashboard />
+      </AdminLayout>
+    </PrivateRoute>
+  }
+/>
         <Route
           path="/appointments"
           element={
