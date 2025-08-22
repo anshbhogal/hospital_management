@@ -36,6 +36,13 @@ const App = () => (
   </QueryClientProvider>
 );
 
+const TestAdminComponent = () => (
+  <div style={{ padding: '20px', textAlign: 'center', backgroundColor: 'lightblue' }}>
+    <h1>Test Admin Page - Direct Render!</h1>
+    <p>If you see this, routing is working at a basic level.</p>
+  </div>
+);
+
 const RouterContent = () => {
   const { isAuthenticated, userRole } = useAuth();
 
@@ -72,11 +79,14 @@ const RouterContent = () => {
           }
         />
 
-        {/* Doctor Dashboard is now part of private routes, or accessible directly via / */}
-        <Route path="/dashboard" element={<PrivateRoute allowedRoles={["Doctor"]}><Index /></PrivateRoute>} />
-        <Route path="/patient" element={<PrivateRoute allowedRoles={["Patient"]}><PatientPortal /></PrivateRoute>} />
-        <Route path="/staff" element={<PrivateRoute allowedRoles={["Staff"]}><StaffDashboard /></PrivateRoute>} />
-        <Route path="/admin" element={<PrivateRoute allowedRoles={["Admin"]}><AdminDashboard /></PrivateRoute>} />
+        {/* Direct test for /admin path - bypasses PrivateRoute */}
+        <Route path="/admin" element={<TestAdminComponent />} />
+
+        {/* Original protected routes (commented out for this test) */}
+        {/* <Route path="/dashboard" element={<PrivateRoute allowedRoles={["Doctor"]}><Index /></PrivateRoute>} /> */}
+        {/* <Route path="/patient" element={<PrivateRoute allowedRoles={["Patient"]}><PatientPortal /></PrivateRoute>} /> */}
+        {/* <Route path="/staff" element={<PrivateRoute allowedRoles={["Staff"]}><StaffDashboard /></PrivateRoute>} /> */}
+        {/* <Route path="/admin" element={<PrivateRoute allowedRoles={["Admin"]}><AdminDashboard /></PrivateRoute>} /> */}
 
         {/* Other protected routes */}
         <Route
