@@ -1,4 +1,4 @@
-# Hospital Management System (HMS)
+# Hospital Management System (HMS) still undergoing
 
 ## Project Overview
 This project implements a comprehensive Hospital Management System (HMS) designed to streamline various administrative and operational tasks within a hospital environment. The system provides functionalities for user authentication, patient management, doctor management, appointment scheduling, medical record keeping, and billing. It is built with a robust and modern tech stack, ensuring scalability, maintainability, and a user-friendly experience for different types of users (Admins, Doctors, and Patients).
