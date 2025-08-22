@@ -7,7 +7,7 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  console.log("Layout: Component started rendering");
+  // console.log("Layout: Component started rendering");
   return (
     <div className="min-h-screen bg-background">
       <div className="flex h-screen">
@@ -15,7 +15,7 @@ export const Layout = ({ children }: LayoutProps) => {
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header />
           <main className="flex-1 overflow-auto p-6">
-            {console.log("Layout: Rendering children")}
+            {/* {console.log("Layout: Rendering children")} */}
             {children}
           </main>
           <footer className="bg-card border-t border-border/50 p-4 text-center text-sm text-muted-foreground">
