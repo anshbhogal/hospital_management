@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 const AdminDashboard = () => {
+  console.log("AdminDashboard: Component started rendering");
   const revenueData = [
     { month: "Jan", amount: 45000, target: 50000 },
     { month: "Feb", amount: 52000, target: 50000 },
@@ -89,7 +90,9 @@ const AdminDashboard = () => {
 
   return (
     <Layout>
+      {console.log("AdminDashboard: Rendering Layout with content")}
       <div className="space-y-6">
+        {console.log("AdminDashboard: Rendering Welcome Section")}
         {/* Welcome Section */}
         <div className="gradient-hero rounded-xl p-8 text-white">
           <div className="max-w-4xl">
@@ -113,6 +116,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {console.log("AdminDashboard: Rendering Key Metrics")}
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
@@ -149,6 +153,7 @@ const AdminDashboard = () => {
           />
         </div>
 
+        {console.log("AdminDashboard: Rendering Main Dashboard Grid")}
         {/* Main Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Revenue Analytics */}
@@ -199,6 +204,7 @@ const AdminDashboard = () => {
             </Card>
           </div>
 
+          {console.log("AdminDashboard: Rendering System Alerts Card")}
           {/* System Alerts */}
           <Card className="gradient-card border-border/50 shadow-medical">
             <CardHeader className="border-b border-border/50">
@@ -232,6 +238,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {console.log("AdminDashboard: Rendering Department Performance & Staff Attendance")}
         {/* Department Performance & Staff Attendance */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Department Performance */}
@@ -276,6 +283,7 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
+          {console.log("AdminDashboard: Rendering Staff Attendance Card")}
           {/* Staff Attendance */}
           <Card className="gradient-card border-border/50 shadow-medical">
             <CardHeader className="border-b border-border/50">
@@ -313,6 +321,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {console.log("AdminDashboard: Rendering Admin Quick Actions Card")}
         {/* Admin Quick Actions */}
         <Card className="gradient-card border-border/50 shadow-medical">
           <CardHeader>
