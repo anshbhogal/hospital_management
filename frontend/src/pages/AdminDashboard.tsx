@@ -21,7 +21,7 @@ import { Layout } from "@/components/Layout";
 // } from "lucide-react";
 
 const AdminDashboard = () => {
-  // console.log("AdminDashboard: Component started rendering");
+  console.log("AdminDashboard: Component function executed!"); // Re-adding this log
 
   return (
     <Layout>
