@@ -18,6 +18,7 @@ import BillingPage from "./pages/BillingPage";
 import SettingsPage from "./pages/SettingsPage";
 import HomePage from "./pages/HomePage"; // Import HomePage
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import ErrorBoundary from "./components/ErrorBoundary"; // Import ErrorBoundary
 
 const queryClient = new QueryClient();
 
@@ -27,7 +28,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <RouterContent />
+        <ErrorBoundary> {/* Wrap RouterContent with ErrorBoundary */}
+          <RouterContent />
+        </ErrorBoundary>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
